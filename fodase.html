@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transcrição Musical para Violino</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+            color: #fff;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        
+        .main-content {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+        
+        .control-panel {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        button {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 50px;
+            background: #ff6b6b;
+            color: white;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        button:hover {
+            background: #ff8e8e;
+            transform: translateY(-2px);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        button:disabled {
+            background: #555;
+            cursor: not-allowed;
+        }
+        
+        #startBtn {
+            background: #4CAF50;
+        }
+        
+        #startBtn:hover {
+            background: #66BB6A;
+        }
+        
+        #stopBtn {
+            background: #F44336;
+        }
+        
+        #stopBtn:hover {
+            background: #EF5350;
+        }
+        
+        .status {
+            text-align: center;
+            font-size: 1.1rem;
+            margin-top: 10px;
+        }
+        
+        .visualization {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .pitch-display {
+            font-size: 2rem;
+            font-weight: bold;
+            text-align: center;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            min-width: 200px;
+        }
+        
+        .staff {
+            width: 100%;
+            height: 160px;
+            background: #f8f8f8;
+            border-radius: 10px;
+            position: relative;
+            background-image: 
+                repeating-linear-gradient(
+                    to bottom,
+                    transparent,
+                    transparent 19px,
+                    #000 19px,
+                    #000 20px
+                );
+            background-position: 0 20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+        }
+        
+        .note {
+            position: absolute;
+            width: 30px;
+            height: 20px;
+            background: #ff6b6b;
+            border-radius: 50%;
+            transform: translateX(-50%);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+        
+        .note::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 28px;
+            width: 2px;
+            height: 70px;
+            background: #000;
+        }
+        
+        .instructions {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+        }
+        
+        .instructions h2 {
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        
+        .instructions ul {
+            list-style-position: inside;
+            padding-left: 20px;
+        }
+        
+        .instructions li {
+            margin-bottom: 10px;
+            line-height: 1.5;
+        }
+        
+        .detected-notes {
+            margin-top: 20px;
+            text-align: center;
+            font-size: 1.2rem;
+        }
+        
+        @media (max-width: 768px) {
+            .controls {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            button {
+                width: 100%;
+                max-width: 300px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Transcrição Musical para Violino</h1>
+            <p class="subtitle">Capture sons e visualize as notas em uma partitura</p>
+        </header>
+        
+        <div class="main-content">
+            <div class="control-panel">
+                <div class="controls">
+                    <button id="startBtn">Iniciar Captura</button>
+                    <button id="stopBtn" disabled>Parar Captura</button>
+                </div>
+                <div class="status" id="status">Pronto para começar</div>
+            </div>
+            
+            <div class="visualization">
+                <div class="pitch-display" id="pitchDisplay">--</div>
+                <div class="staff" id="staff"></div>
+                <div class="detected-notes" id="detectedNotes">
+                    Notas detectadas: 
+                </div>
+            </div>
+        </div>
+        
+        <div class="instructions">
+            <h2>Como usar</h2>
+            <ul>
+                <li>Clique em "Iniciar Captura" para começar a gravar o áudio</li>
+                <li>Toque uma nota musical no seu violino (ou outro instrumento)</li>
+                <li>O sistema detectará a nota e a exibirá na partitura</li>
+                <li>Clique em "Parar Captura" quando terminar</li>
+                <li>Para melhores resultados, toque uma nota de cada vez em um ambiente silencioso</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const startBtn = document.getElementById('startBtn');
+            const stopBtn = document.getElementById('stopBtn');
+            const status = document.getElementById('status');
+            const pitchDisplay = document.getElementById('pitchDisplay');
+            const staff = document.getElementById('staff');
+            const detectedNotes = document.getElementById('detectedNotes');
+            
+            let audioContext;
+            let analyser;
+            let microphone;
+            let javascriptNode;
+            let isRecording = false;
+            let detectedPitches = [];
+            
+            // Mapeamento de frequências para notas (em Hz)
+            const noteFrequencies = {
+                'G3': 196.00,
+                'A3': 220.00,
+                'B3': 246.94,
+                'C4': 261.63,
+                'D4': 293.66,
+                'E4': 329.63,
+                'F4': 349.23,
+                'G4': 392.00,
+                'A4': 440.00,
+                'B4': 493.88,
+                'C5': 523.25,
+                'D5': 587.33,
+                'E5': 659.25,
+                'F5': 698.46,
+                'G5': 783.99,
+                'A5': 880.00
+            };
+            
+            // Iniciar a captura de áudio
+            startBtn.addEventListener('click', function() {
+                startBtn.disabled = true;
+                stopBtn.disabled = false;
+                status.textContent = "Capturando áudio...";
+                
+                // Inicializar o contexto de áudio
+                try {
+                    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    analyser = audioContext.createAnalyser();
+                    analyser.fftSize = 2048;
+                    
+                    // Solicitar acesso ao microfone
+                    navigator.mediaDevices.getUserMedia({ audio: true })
+                        .then(function(stream) {
+                            microphone = audioContext.createMediaStreamSource(stream);
+                            microphone.connect(analyser);
+                            
+                            javascriptNode = audioContext.createScriptProcessor(2048, 1, 1);
+                            analyser.connect(javascriptNode);
+                            javascriptNode.connect(audioContext.destination);
+                            
+                            javascriptNode.onaudioprocess = function() {
+                                const array = new Uint8Array(analyser.frequencyBinCount);
+                                analyser.getByteFrequencyData(array);
+                                
+                                // Encontrar a frequência dominante
+                                let value = 0;
+                                let index = 0;
+                                for (let i = 0; i < array.length; i++) {
+                                    if (value < array[i]) {
+                                        value = array[i];
+                                        index = i;
+                                    }
+                                }
+                                
+                                // Calcular a frequência
+                                const frequency = index * audioContext.sampleRate / analyser.fftSize;
+                                
+                                // Encontrar a nota mais próxima
+                                let closestNote = '--';
+                                let minDifference = Infinity;
+                                
+                                for (const [note, freq] of Object.entries(noteFrequencies)) {
+                                    const difference = Math.abs(frequency - freq);
+                                    if (difference < minDifference) {
+                                        minDifference = difference;
+                                        closestNote = note;
+                                    }
+                                }
+                                
+                                // Exibir a nota se for suficientemente forte
+                                if (value > 50 && closestNote !== '--') {
+                                    pitchDisplay.textContent = closestNote;
+                                    
+                                    // Adicionar à lista de notas detectadas se for nova
+                                    if (!detectedPitches.includes(closestNote)) {
+                                        detectedPitches.push(closestNote);
+                                        detectedNotes.textContent = "Notas detectadas: " + detectedPitches.join(', ');
+                                        
+                                        // Adicionar à partitura
+                                        addNoteToStaff(closestNote);
+                                    }
+                                } else {
+                                    pitchDisplay.textContent = '--';
+                                }
+                            };
+                            
+                            isRecording = true;
+                        })
+                        .catch(function(err) {
+                            status.textContent = "Erro: " + err.message;
+                            startBtn.disabled = false;
+                            stopBtn.disabled = true;
+                        });
+                } catch (e) {
+                    status.textContent = "Seu navegador não suporta esta funcionalidade.";
+                    startBtn.disabled = true;
+                }
+            });
+            
+            // Parar a captura de áudio
+            stopBtn.addEventListener('click', function() {
+                if (isRecording) {
+                    startBtn.disabled = false;
+                    stopBtn.disabled = true;
+                    status.textContent = "Captura parada";
+                    
+                    // Desconectar e parar a gravação
+                    if (javascriptNode) javascriptNode.onaudioprocess = null;
+                    if (microphone) microphone.disconnect();
+                    if (analyser) analyser.disconnect();
+                    if (javascriptNode) javascriptNode.disconnect();
+                    
+                    if (audioContext) {
+                        audioContext.close().then(function() {
+                            audioContext = null;
+                        });
+                    }
+                    
+                    isRecording = false;
+                }
+            });
+            
+            // Adicionar nota à partitura
+            function addNoteToStaff(note) {
+                // Limpar a partitura se tiver muitas notas
+                if (staff.children.length > 10) {
+                    staff.innerHTML = '';
+                }
+                
+                const noteElement = document.createElement('div');
+                noteElement.className = 'note';
+                
+                // Posicionar a nota na pauta de acordo com a altura
+                const notePositions = {
+                    'G3': 140, 'A3': 130, 'B3': 120, 
+                    'C4': 110, 'D4': 100, 'E4': 90, 'F4': 80, 'G4': 70, 
+                    'A4': 60, 'B4': 50, 'C5': 40, 'D5': 30, 'E5': 20, 
+                    'F5': 10, 'G5': 0, 'A5': -10
+                };
+                
+                const position = notePositions[note] || 70;
+                noteElement.style.bottom = position + 'px';
+                
+                // Posicionar horizontalmente (distribuído)
+                const leftPosition = 50 + (staff.children.length * 80);
+                noteElement.style.left = leftPosition + 'px';
+                
+                staff.appendChild(noteElement);
+                
+                // Adicionar o nome da nota
+                const noteLabel = document.createElement('div');
+                noteLabel.textContent = note;
+                noteLabel.style.position = 'absolute';
+                noteLabel.style.left = (leftPosition - 10) + 'px';
+                noteLabel.style.bottom = (position - 20) + 'px';
+                noteLabel.style.color = '#ff6b6b';
+                noteLabel.style.fontWeight = 'bold';
+                staff.appendChild(noteLabel);
+            }
+        });
+    </script>
+</body>
+</html>
